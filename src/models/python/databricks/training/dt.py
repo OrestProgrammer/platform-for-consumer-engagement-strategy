@@ -1,33 +1,19 @@
 import pandas as pd
-import numpy as np
-from sklearn.preprocessing import OrdinalEncoder, StandardScaler, label_binarize
+from sklearn.preprocessing import StandardScaler
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import train_test_split
 from prettytable import PrettyTable
 import src.models.python.databricks.common.metrics_info as mi
+import src.models.python.databricks.common.data_manipulation as dm
 import matplotlib.pyplot as plt
+
 
 input_df = pd.read_csv('/Users/orestchukla/Desktop/Універ/4 курс/Дипломна/SparkProject/data/gold/online_consumer_full_gold.csv')
 
-input_df = input_df.dropna()
+processed_df = dm.data_preprocessing(input_df)
 
-input_df['consumer_category'] = input_df['consumer_category'].replace({'Occasional': 0, 'Normal': 1, 'Best': 2})
-
-columns_for_ordinal_encoder = ["consumer_country", "consumer_state", "consumer_city", "consumer_age_label",
-                               "payment_type_set", "product_category_name_english_set", "order_quality_label_set",
-                               "item_price_category_label_set", "payment_label_set", "product_volume_label_set",
-                               "most_frequent_payment_type"]
-
-ordinal_encoder = OrdinalEncoder(handle_unknown='use_encoded_value', unknown_value=-1)
-
-df_to_encode = input_df[columns_for_ordinal_encoder]
-
-decoded_df = ordinal_encoder.fit_transform(df_to_encode)
-
-input_df[columns_for_ordinal_encoder] = decoded_df
-
-X = input_df.drop("consumer_category", axis=1)
-y = input_df["consumer_category"]
+X = processed_df.drop("consumer_category", axis=1)
+y = processed_df["consumer_category"]
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=30)
 X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.2, random_state=30)
@@ -78,8 +64,3 @@ plt.show()
 
 lc_plt = mi.plot_learning_curve(dt, X_train_scaled, y_train)
 lc_plt.show()
-
-classes = np.unique(y_test)
-y_test_bin = label_binarize(y_test, classes=classes)
-roc_plt = mi.plot_roc_curve(dt, X_test_scaled, y_test_bin, classes)
-roc_plt.show()

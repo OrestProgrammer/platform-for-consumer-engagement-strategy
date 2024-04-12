@@ -1,0 +1,268 @@
+body {
+    font-family: 'Times New Roman',
+        Times, serif;
+    font-weight: bold;
+    background-color: #f7f9fc !important;
+}
+
+#root {
+    display: flex;
+    margin-top: 40px;
+}
+
+#root .container {
+    margin: 40px;
+    margin-bottom: 0;
+}
+
+.btn-primary {
+    background-color: #20b282 !important;
+    border: none !important;
+}
+
+form a,
+pre {
+    color: #20b282 !important;
+}
+
+pre {
+    border-radius: 4px;
+    padding: 10px;
+    background-color: #f2f2f2;
+}
+
+.sidebar {
+    position: sticky;
+    top: 0;
+    bottom: 0;
+    height: 100vh;
+    width: 200px;
+    background-color: #10124e;
+    color: #fff !important;
+}
+
+.sidebar .container-fluid {
+    position: sticky;
+    top: 70px;
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 70px);
+}
+
+.sidebar .nav-item {
+    width: 100%;
+}
+
+.loggedout {
+    width: 100%;
+}
+
+.loggedlog {
+    padding: 0 8px 0 16px;
+    padding-bottom: 12px;
+}
+
+.user {
+    width: 100%;
+    padding: 0 8px 0 16px;
+}
+
+.userlog {
+    padding-left: 16px !important;
+}
+
+.sidebar .nav-item .nav-link.active {
+    background-color: #f2f2f2;
+    color: #10124e !important;
+    border-radius: 4px;
+}
+
+.sidebar .nav-item-sec {
+    width: 100%;
+    padding: 0 8px 0 16px;
+    right: 10px;
+    background-color: #f2f2f2;
+    color: #10124e !important;
+    border-radius: 4px;
+}
+
+.sidebar .nav-item-sec .nav-link.active {
+    background-color: #f2f2f2;
+    color: #10124e !important;
+    border-radius: 4px;
+}
+
+.navbar {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    background-color: #10124e;
+    color: #fff !important;
+}
+
+.navbar-brand {
+    font-weight: 500;
+    margin-left: 20px;
+    margin-right: 50px !important;
+    color: #fff !important;
+}
+
+.nav-item .nav-link {
+    color: #fff !important;
+}
+
+.nav-item .nav-link:hover {
+    color: #20b282 !important;
+}
+
+.form-group {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.form-group label {
+    margin-bottom: 5px;
+}
+
+.form-group input {
+    width: 100%;
+    margin-bottom: 10px;
+    padding: 1px 5px;
+}
+
+.form-group input::placeholder {
+    font-size: 13px;
+}
+
+input {
+    outline: none;
+    border-radius: 4px;
+    color: #10124e !important;
+    border: 1px solid #10124e;
+
+}
+
+button.btn_login {
+    display: block;
+    width: 100%;
+    height: 30px;
+    line-height: 1;
+    padding: 0;
+    margin: 10px auto;
+}
+
+.list-group-item {
+
+    padding: 19px !important;
+}
+
+
+.list-group-item:nth-child(odd) {
+    background: #ebf0ff;
+
+}
+
+.classification-list {
+    max-height: 420px;
+    overflow-x: auto;
+}
+
+.classification-list h5 {
+    cursor: pointer;
+}
+
+.classification-list h5 span {
+    display: inline-block;
+    margin-left: 5px;
+}
+
+.classification-list h5:hover {
+    color: #0d6efd;
+}
+
+.classification-list .card-body {
+    padding: 0;
+}
+
+.classification-list .card-body p {
+    margin: 0;
+    padding: 20px;
+}
+
+.file-upload input[type='file'] {
+    display: none;
+}
+
+.table {
+    border-radius: 4px;
+    position: sticky;
+    top: 0;
+    font-size: 13px;
+}
+
+
+.table-csv {
+    width: 100%;
+    height: 500px;
+    overflow: scroll;
+}
+
+.table-csv table thead {
+    position: sticky;
+    top: 0;
+}
+
+.table-code {
+    position: relative;
+    border-radius: 4px;
+    top: 0;
+    font-size: 15px;
+}
+
+.table-code tbody td:first-child {
+    color: #20b282;
+    font-weight: 500;
+
+}
+
+.nav-link {
+    font-weight: 500 !important;
+    color: black !important;
+}
+
+.nav-link.active {
+    color: #20b282 !important;
+}
+
+.user-photo {
+    max-width: 260px;
+    margin: 0 auto;
+}
+
+.btn-process {
+    background-color: #10124e !important;
+    color: #fff !important;
+}
+
+.button-group .btn {
+    margin: 0 10px;
+    min-width: 200px;
+}
+
+.payment {
+    max-width: 300px;
+    margin: 40px auto 10px;
+}
+
+.error-message {
+    color: red;
+}
+
+.search input {
+    display: block;
+    height: 40px;
+    padding-left: 10px;
+    margin-right: 10px;
+}

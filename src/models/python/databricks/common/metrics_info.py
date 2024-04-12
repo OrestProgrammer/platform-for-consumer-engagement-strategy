@@ -2,6 +2,7 @@ import numpy as np
 import sklearn.metrics as metrics
 from sklearn.model_selection import learning_curve
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 
 def show_accuracy(y, y_pred):
@@ -43,5 +44,15 @@ def plot_learning_curve(model, X, y):
     plt.ylabel('Accuracy')
     plt.legend(loc="lower right")
     plt.grid(True)
+
+    return plt
+
+
+def plot_corr_matrix(df):
+    corr_matrix = df.corr()
+
+    plt.figure(figsize=(100, 100))
+    sns.heatmap(corr_matrix, annot=True, cmap="coolwarm", linewidths=1)
+    plt.title("Autocorrelation Matrix")
 
     return plt
