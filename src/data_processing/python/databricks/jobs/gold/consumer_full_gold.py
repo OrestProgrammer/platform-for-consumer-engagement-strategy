@@ -253,8 +253,7 @@ df_consumer_orders_final = df_consumer_orders_final.withColumn('most_frequent_pa
                                                                .otherwise('debit_card'))
 
 
-df_consumer_orders_final = df_consumer_orders_final.drop("consumer_unique_id",
-                                                         "order_id_list",
+df_consumer_orders_final = df_consumer_orders_final.drop("order_id_list",
                                                          "product_id_list",
                                                          "item_price_list",
                                                          "item_price_list_double",
