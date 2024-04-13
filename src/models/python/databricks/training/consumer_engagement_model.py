@@ -1,3 +1,12 @@
+# Databricks notebook source
+pip install scikit-learn==1.3.2
+
+# COMMAND ----------
+
+dbutils.library.restartPython()
+
+# COMMAND ----------
+
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestClassifier, VotingClassifier
@@ -5,14 +14,39 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.svm import SVC
 from sklearn.model_selection import train_test_split
-from prettytable import PrettyTable
 import src.models.python.databricks.common.metrics_info as mi
 import src.models.python.databricks.common.data_manipulation as dm
 import matplotlib.pyplot as plt
 import pickle
+import os
+from pyspark.sql.functions import array_join, col, concat_ws, lit
 
+# COMMAND ----------
 
-input_df = pd.read_csv('/Users/orestchukla/Desktop/Універ/4 курс/Дипломна/SparkProject/data/gold/online_consumer_full_gold.csv')
+# MAGIC %run ../../../../data_processing/python/databricks/common/DP_Tools/DP_Decrypter
+
+# COMMAND ----------
+
+df = spark.table("consumer_engagement_uc.dev_gold_db.online_consumer_full_gold")
+
+cols_for_decryption = "consumer_city, consumer_age, consumer_phone_number"
+
+df = get_decrypted_columns(df, cols_for_decryption)
+
+array_columns = [
+    'payment_type_set',
+    'product_category_name_english_set',
+    'order_quality_label_set',
+    'item_price_category_label_set',
+    'payment_label_set',
+    'product_volume_label_set'
+]
+
+for array_col in array_columns:
+    df = df.withColumn(array_col, array_join(col(array_col), "', '"))
+    df = df.withColumn(array_col, concat_ws("", lit("['"), col(array_col), lit("']")))
+
+input_df = df.toPandas()
 
 processed_df = dm.data_preprocessing(input_df)
 
@@ -36,44 +70,16 @@ dt = DecisionTreeClassifier(criterion='gini', max_depth=10, min_samples_split=3,
 ensemble = VotingClassifier(estimators=[('knn', knn), ('svm', svm), ('rf', rf), ('dt', dt)], voting='soft')
 ensemble.fit(X_train_scaled, y_train)
 
-y_pred_val = ensemble.predict(X_val_scaled)
-y_pred_test = ensemble.predict(X_test_scaled)
+local_tmp_path = "/dbfs/tmp/model.pkl"
+adls_model_path = 'abfss://models@consumerengagementdl.dfs.core.windows.net/consumer_engagement_model/model.pkl'
 
-accuracy_val = mi.show_accuracy(y_val, y_pred_val)
-accuracy_test = mi.show_accuracy(y_test, y_pred_test)
+if os.path.exists(local_tmp_path):
+    os.remove(local_tmp_path)
 
-precision_val = mi.show_precision(y_val, y_pred_val)
-precision_test = mi.show_precision(y_test, y_pred_test)
-
-recall_val = mi.show_recall(y_val, y_pred_val)
-recall_test = mi.show_recall(y_test, y_pred_test)
-
-f1_val = mi.show_f1(y_val, y_pred_val)
-f1_test = mi.show_f1(y_test, y_pred_test)
-
-table = PrettyTable()
-table.field_names = ["Metric", "Validation result", "Test result"]
-
-table.add_row(["Accuracy", accuracy_val, accuracy_test])
-table.add_row(["Precision", precision_val, precision_test])
-table.add_row(["Recall", recall_val, recall_test])
-table.add_row(["F1 score", f1_val, f1_test])
-
-print(table)
-
-disp_cm_val = mi.show_confusion_matrix(y_val, y_pred_val, ensemble)
-disp_cm_test = mi.show_confusion_matrix(y_test, y_pred_test, ensemble)
-
-disp_cm_val.plot()
-plt.title('Confusion Matrix for validation set')
-plt.show()
-
-disp_cm_test.plot()
-plt.title('Confusion Matrix for test set')
-plt.show()
-
-lc_plt = mi.plot_learning_curve(ensemble, X_train_scaled, y_train)
-lc_plt.show()
-
-with open('/Users/orestchukla/Desktop/Універ/4 курс/Дипломна/SparkProject/src/models/model.pkl', 'wb') as file:
+with open(local_tmp_path, 'wb') as file:
     pickle.dump(ensemble, file)
+
+dbutils.fs.cp("file:" + local_tmp_path, adls_model_path)
+
+if os.path.exists(local_tmp_path):
+    os.remove(local_tmp_path)

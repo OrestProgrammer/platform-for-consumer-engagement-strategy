@@ -290,5 +290,3 @@ df_consumer_orders_final = get_encrypted_columns(df_consumer_orders_final, cols_
  .mode("overwrite")
  .saveAsTable(f"{GOLD_CATALOG}.{GOLD_LAYER}.online_consumer_full_gold")
 )
-
-# df_consumer_orders_final.toPandas().to_csv('/online_consumer_full_gold.csv', index = False)
