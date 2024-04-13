@@ -8,7 +8,9 @@ spark = SparkSession.builder \
     .master("local[*]") \
     .getOrCreate()
 
-input_df = spark.read.csv("/Users/orestchukla/Desktop/Універ/4 курс/Дипломна/SparkProject/data/data_to_test_model.csv", header=True, inferSchema=True)
+path_to_data = "/Users/orestchukla/Desktop/platform-for-consumer-engagement-strategy/data/data_to_test_model.csv"
+
+input_df = spark.read.csv(path_to_data, header=True, inferSchema=True)
 
 df = input_df.toPandas()
 
@@ -30,3 +32,4 @@ if response.status_code == 200:
     processed_df.show(100, False)
 else:
     print(f"Request failed with status code {response.status_code}. {response.json()['error']}")
+

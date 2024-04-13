@@ -7,14 +7,24 @@ import pickle
 import datetime
 from flask_httpauth import HTTPBasicAuth
 from flask_bcrypt import Bcrypt
-import json
-
+from azure.storage.blob import BlobServiceClient
+from dotenv import load_dotenv
+import os
 
 classification = Blueprint('classification', __name__)
 CORS(classification)
 session = Session()
 auth = HTTPBasicAuth()
 bcrypt = Bcrypt()
+
+load_dotenv('/Users/orestchukla/Desktop/platform-for-consumer-engagement-strategy/creds.env')
+
+account_name = os.getenv("ACCOUNT_NAME")
+account_key = os.getenv("ACCOUNT_KEY")
+
+connection_string = f"DefaultEndpointsProtocol=https;AccountName={account_name};AccountKey={account_key};EndpointSuffix=core.windows.net"
+
+blob_service_client = BlobServiceClient.from_connection_string(connection_string)
 
 
 @auth.verify_password
@@ -63,8 +73,7 @@ def classify_users():
 
     columns_for_ordinal_encoder = ["consumer_country", "consumer_state", "consumer_city", "consumer_age_label",
                                    "payment_type_set", "product_category_name_english_set", "order_quality_label_set",
-                                   "item_price_category_label_set", "payment_label_set", "product_volume_label_set",
-                                   "most_frequent_payment_type"]
+                                   "item_price_category_label_set", "payment_label_set"]
 
     ordinal_encoder = OrdinalEncoder(handle_unknown='use_encoded_value', unknown_value=-1)
 
@@ -75,8 +84,13 @@ def classify_users():
     scaler = StandardScaler()
     scaled_input_df = scaler.fit_transform(input_df2)
 
-    with open('/Users/orestchukla/Desktop/Універ/4 курс/Дипломна/SparkProject/src/models/model.pkl', 'rb') as file:
-        loaded_model = pickle.load(file)
+    container_name = 'models'
+    blob_name = 'consumer_engagement_model/model.pkl'
+
+    blob_client = blob_service_client.get_blob_client(container=container_name, blob=blob_name)
+
+    blob_data = blob_client.download_blob().readall()
+    loaded_model = pickle.loads(blob_data)
 
     input_df['consumer_category'] = loaded_model.predict(scaled_input_df)
 
@@ -142,8 +156,7 @@ def global_classify_users():
         columns_for_ordinal_encoder = ["consumer_country", "consumer_state", "consumer_city", "consumer_age_label",
                                        "payment_type_set", "product_category_name_english_set",
                                        "order_quality_label_set",
-                                       "item_price_category_label_set", "payment_label_set", "product_volume_label_set",
-                                       "most_frequent_payment_type"]
+                                       "item_price_category_label_set", "payment_label_set"]
 
         ordinal_encoder = OrdinalEncoder(handle_unknown='use_encoded_value', unknown_value=-1)
 
@@ -154,8 +167,13 @@ def global_classify_users():
         scaler = StandardScaler()
         scaled_input_df = scaler.fit_transform(input_df2)
 
-        with open('/Users/orestchukla/Desktop/Універ/4 курс/Дипломна/SparkProject/src/models/model.pkl', 'rb') as file:
-            loaded_model = pickle.load(file)
+        container_name = 'models'
+        blob_name = 'consumer_engagement_model/model.pkl'
+
+        blob_client = blob_service_client.get_blob_client(container=container_name, blob=blob_name)
+
+        blob_data = blob_client.download_blob().readall()
+        loaded_model = pickle.loads(blob_data)
 
         input_df['consumer_category'] = loaded_model.predict(scaled_input_df)
 
