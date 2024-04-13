@@ -1,17 +1,56 @@
+# Databricks notebook source
+pip install prettytable
+
+# COMMAND ----------
+
+dbutils.library.restartPython()
+
+# COMMAND ----------
+
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import train_test_split
 from prettytable import PrettyTable
-import src.models.python.databricks.common.metrics_info as mi
-import src.models.python.databricks.common.data_manipulation as dm
 import matplotlib.pyplot as plt
+from pyspark.sql.functions import array_join, col, concat_ws, lit
 
+# COMMAND ----------
 
-input_df = pd.read_csv('/Users/orestchukla/Desktop/Універ/4 курс/Дипломна/SparkProject/data/gold/online_consumer_full_gold.csv')
+# MAGIC %run ../common/metrics_info
 
-processed_df = dm.data_preprocessing(input_df)
+# COMMAND ----------
 
+# MAGIC %run ../common/data_manipulation
+
+# COMMAND ----------
+
+# MAGIC %run ../../../../data_processing/python/databricks/common/DP_Tools/DP_Decrypter
+
+# COMMAND ----------
+
+df = spark.table("consumer_engagement_uc.dev_gold_db.online_consumer_full_gold")
+
+cols_for_decryption = "consumer_city, consumer_age, consumer_phone_number"
+
+df = get_decrypted_columns(df, cols_for_decryption)
+
+array_columns = [
+    'payment_type_set',
+    'product_category_name_english_set',
+    'order_quality_label_set',
+    'item_price_category_label_set',
+    'payment_label_set',
+    'product_volume_label_set'
+]
+
+for array_col in array_columns:
+    df = df.withColumn(array_col, array_join(col(array_col), "', '"))
+    df = df.withColumn(array_col, concat_ws("", lit("['"), col(array_col), lit("']")))
+
+input_df = df.toPandas()
+
+processed_df = data_preprocessing(input_df)
 X = processed_df.drop("consumer_category", axis=1)
 y = processed_df["consumer_category"]
 
@@ -29,17 +68,17 @@ dt.fit(X_train_scaled, y_train)
 y_pred_val = dt.predict(X_val_scaled)
 y_pred_test = dt.predict(X_test_scaled)
 
-accuracy_val = mi.show_accuracy(y_val, y_pred_val)
-accuracy_test = mi.show_accuracy(y_test, y_pred_test)
+accuracy_val = show_accuracy(y_val, y_pred_val)
+accuracy_test = show_accuracy(y_test, y_pred_test)
 
-precision_val = mi.show_precision(y_val, y_pred_val)
-precision_test = mi.show_precision(y_test, y_pred_test)
+precision_val = show_precision(y_val, y_pred_val)
+precision_test = show_precision(y_test, y_pred_test)
 
-recall_val = mi.show_recall(y_val, y_pred_val)
-recall_test = mi.show_recall(y_test, y_pred_test)
+recall_val = show_recall(y_val, y_pred_val)
+recall_test = show_recall(y_test, y_pred_test)
 
-f1_val = mi.show_f1(y_val, y_pred_val)
-f1_test = mi.show_f1(y_test, y_pred_test)
+f1_val = show_f1(y_val, y_pred_val)
+f1_test = show_f1(y_test, y_pred_test)
 
 table = PrettyTable()
 table.field_names = ["Metric", "Validation result", "Test result"]
@@ -51,8 +90,8 @@ table.add_row(["F1 score", f1_val, f1_test])
 
 print(table)
 
-disp_cm_val = mi.show_confusion_matrix(y_val, y_pred_val, dt)
-disp_cm_test = mi.show_confusion_matrix(y_test, y_pred_test, dt)
+disp_cm_val = show_confusion_matrix(y_val, y_pred_val, dt)
+disp_cm_test = show_confusion_matrix(y_test, y_pred_test, dt)
 
 disp_cm_val.plot()
 plt.title('Confusion Matrix for validation set')
@@ -62,5 +101,5 @@ disp_cm_test.plot()
 plt.title('Confusion Matrix for test set')
 plt.show()
 
-lc_plt = mi.plot_learning_curve(dt, X_train_scaled, y_train)
+lc_plt = plot_learning_curve(dt, X_train_scaled, y_train)
 lc_plt.show()
