@@ -32,11 +32,14 @@ def make_payment():
     except ValueError:
         return jsonify({'status': 'error', 'message': 'Quantity should be an integer'}), 400
 
-    if int(data['totalPrice']) < 0 or int(data['amount']) < 0:
+    if float(data['totalPrice']) < 0 or int(data['amount']) < 0:
         return jsonify({'status': 'error', 'message': 'Quantity should be non-negative'}), 400
 
     if int(data['amount']) == 0:
         return jsonify({'status': 'error', 'message': 'Quantity should be grater than 0.'}), 400
+
+    if float(data['totalPrice']) == 0:
+        return jsonify({'status': 'error', 'message': 'At least 10 quantities can be purchased.'}), 400
 
     if not isinstance(int(data['amount']), int):
         return jsonify({'status': 'error', 'message': 'Quantity should be an integer'}), 400
