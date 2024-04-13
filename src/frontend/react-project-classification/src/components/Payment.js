@@ -20,7 +20,7 @@ const Payment = () => {
 
     const handleAmountChange = e => {
         setAmount(e.target.value);
-        setTotalPrice(e.target.value * pricePerItem);
+        setTotalPrice((e.target.value * pricePerItem).toFixed(2));
     };
 
     useEffect(() => {
