@@ -7,6 +7,18 @@ dbutils.library.restartPython()
 
 # COMMAND ----------
 
+dbutils.widgets.text("GOLD_CATALOG", "")
+dbutils.widgets.text("GOLD_LAYER", "")
+dbutils.widgets.text("PATH_TO_SAVE_MODEL", "")
+
+# COMMAND ----------
+
+GOLD_CATALOG = dbutils.widgets.get("GOLD_CATALOG")
+GOLD_LAYER = dbutils.widgets.get("GOLD_LAYER")
+PATH_TO_SAVE_MODEL = dbutils.widgets.get("PATH_TO_SAVE_MODEL")
+
+# COMMAND ----------
+
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestClassifier, VotingClassifier
@@ -14,8 +26,6 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.svm import SVC
 from sklearn.model_selection import train_test_split
-import src.models.python.databricks.common.metrics_info as mi
-import src.models.python.databricks.common.data_manipulation as dm
 import matplotlib.pyplot as plt
 import pickle
 import os
@@ -23,11 +33,15 @@ from pyspark.sql.functions import array_join, col, concat_ws, lit
 
 # COMMAND ----------
 
+# MAGIC %run ../common/data_manipulation
+
+# COMMAND ----------
+
 # MAGIC %run ../../../../data_processing/python/databricks/common/DP_Tools/DP_Decrypter
 
 # COMMAND ----------
 
-df = spark.table("consumer_engagement_uc.dev_gold_db.online_consumer_full_gold")
+df = spark.table(f"{GOLD_CATALOG}.{GOLD_LAYER}.online_consumer_full_gold")
 
 cols_for_decryption = "consumer_city, consumer_age, consumer_phone_number"
 
@@ -48,7 +62,7 @@ for array_col in array_columns:
 
 input_df = df.toPandas()
 
-processed_df = dm.data_preprocessing(input_df)
+processed_df = data_preprocessing(input_df)
 
 X = processed_df.drop("consumer_category", axis=1)
 y = processed_df["consumer_category"]
@@ -71,7 +85,7 @@ ensemble = VotingClassifier(estimators=[('knn', knn), ('svm', svm), ('rf', rf), 
 ensemble.fit(X_train_scaled, y_train)
 
 local_tmp_path = "/dbfs/tmp/model.pkl"
-adls_model_path = 'abfss://models@consumerengagementdl.dfs.core.windows.net/consumer_engagement_model/model.pkl'
+adls_model_path = f"{PATH_TO_SAVE_MODEL}/model.pkl"
 
 if os.path.exists(local_tmp_path):
     os.remove(local_tmp_path)

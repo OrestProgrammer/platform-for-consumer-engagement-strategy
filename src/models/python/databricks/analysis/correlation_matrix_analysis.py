@@ -1,8 +1,38 @@
-import src.models.python.databricks.common.metrics_info as mi
+# Databricks notebook source
 import pandas as pd
 from sklearn.preprocessing import OrdinalEncoder
+from pyspark.sql.functions import array_join, col, concat_ws, lit
 
-input_df = pd.read_csv('/Users/orestchukla/Desktop/Універ/4 курс/Дипломна/SparkProject/data/gold/online_consumer_full_gold.csv')
+# COMMAND ----------
+
+# MAGIC %run ../common/metrics_info
+
+# COMMAND ----------
+
+# MAGIC %run ../../../../data_processing/python/databricks/common/DP_Tools/DP_Decrypter
+
+# COMMAND ----------
+
+df = spark.table("consumer_engagement_uc.dev_gold_db.online_consumer_full_gold")
+
+cols_for_decryption = "consumer_city, consumer_age, consumer_phone_number"
+
+df = get_decrypted_columns(df, cols_for_decryption)
+
+array_columns = [
+    'payment_type_set',
+    'product_category_name_english_set',
+    'order_quality_label_set',
+    'item_price_category_label_set',
+    'payment_label_set',
+    'product_volume_label_set'
+]
+
+for array_col in array_columns:
+    df = df.withColumn(array_col, array_join(col(array_col), "', '"))
+    df = df.withColumn(array_col, concat_ws("", lit("['"), col(array_col), lit("']")))
+
+input_df = df.toPandas()
 
 columns_for_model_training = ['consumer_zip_code', 'consumer_country', 'consumer_state', 'consumer_city', 'consumer_age',
                               'geolocation_latitude', 'geolocation_longitude', 'consumer_age_label', 'payment_type_set',
@@ -32,6 +62,6 @@ decoded_df = ordinal_encoder.fit_transform(df_to_encode)
 
 input_df[columns_for_ordinal_encoder] = decoded_df
 
-plt = mi.plot_corr_matrix(input_df)
+plt = plot_corr_matrix(input_df)
 
-plt.savefig('/Users/orestchukla/Desktop/Універ/4 курс/Дипломна/SparkProject/data/correlation_matrix_second.png')
+plt.show()
