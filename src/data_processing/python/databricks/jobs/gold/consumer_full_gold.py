@@ -1,37 +1,41 @@
-from pyspark.sql import SparkSession
+# Databricks notebook source
+dbutils.widgets.text("SILVER_CATALOG", "")
+dbutils.widgets.text("SILVER_LAYER", "")
+dbutils.widgets.text("GOLD_CATALOG", "")
+dbutils.widgets.text("GOLD_LAYER", "")
+
+# COMMAND ----------
+
+SILVER_CATALOG = dbutils.widgets.get("SILVER_CATALOG")
+SILVER_LAYER = dbutils.widgets.get("SILVER_LAYER")
+GOLD_CATALOG = dbutils.widgets.get("GOLD_CATALOG")
+GOLD_LAYER = dbutils.widgets.get("GOLD_LAYER")
+
+# COMMAND ----------
+
+# MAGIC %run ../../common/DP_Tools/DP_Encrypter
+
+# COMMAND ----------
+
+# MAGIC %run ../../common/DP_Tools/DP_Decrypter
+
+# COMMAND ----------
+
 from pyspark.sql.functions import col, collect_set, size, when, collect_list, array_max, array_min, expr, transform, sort_array
 
-spark = SparkSession \
-    .builder \
-    .appName("consumer_full_gold") \
-    .master("local[*]") \
-    .getOrCreate()
 
-df_online_consumer = spark.read.parquet(
-    "/Users/orestchukla/Desktop/Універ/4 курс/Дипломна/SparkProject/data/silver/online_consumer/")
-df_online_geolocation = spark.read.parquet(
-    "/Users/orestchukla/Desktop/Універ/4 курс/Дипломна/SparkProject/data/silver/online_geolocation/")
-df_online_order = spark.read.parquet(
-    "/Users/orestchukla/Desktop/Універ/4 курс/Дипломна/SparkProject/data/silver/online_order/")
-df_online_order_items = spark.read.parquet(
-    "/Users/orestchukla/Desktop/Універ/4 курс/Дипломна/SparkProject/data/silver/online_order_items/")
-df_online_order_reviews = spark.read.parquet(
-    "/Users/orestchukla/Desktop/Універ/4 курс/Дипломна/SparkProject/data/silver/online_order_reviews/")
-df_online_payments = spark.read.parquet(
-    "/Users/orestchukla/Desktop/Універ/4 курс/Дипломна/SparkProject/data/silver/online_payments/")
-df_online_product_category_translation_silver = spark.read.parquet(
-    "/Users/orestchukla/Desktop/Універ/4 курс/Дипломна/SparkProject/data/silver/online_product_category_translation_silver/")
-df_online_products = spark.read.parquet(
-    "/Users/orestchukla/Desktop/Універ/4 курс/Дипломна/SparkProject/data/silver/online_products/")
+df_online_consumer = spark.table(f"{SILVER_CATALOG}.{SILVER_LAYER}.online_consumer")
+df_online_geolocation = spark.table(f"{SILVER_CATALOG}.{SILVER_LAYER}.online_geolocation")
+df_online_order = spark.table(f"{SILVER_CATALOG}.{SILVER_LAYER}.online_order")
+df_online_order_items = spark.table(f"{SILVER_CATALOG}.{SILVER_LAYER}.online_order_items")
+df_online_order_reviews = spark.table(f"{SILVER_CATALOG}.{SILVER_LAYER}.online_order_reviews")
+df_online_payments = spark.table(f"{SILVER_CATALOG}.{SILVER_LAYER}.online_payments")
+df_online_product_category_translation_silver = spark.table(f"{SILVER_CATALOG}.{SILVER_LAYER}.online_product_category_translation_silver")
+df_online_products = spark.table(f"{SILVER_CATALOG}.{SILVER_LAYER}.online_products")
 
-# df_online_consumer = DP_Decrypter.get_decrypted_columns(df_online_consumer, "")
-# df_online_geolocation = DP_Decrypter.get_decrypted_columns(df_online_geolocation, "")
-# df_online_order = DP_Decrypter.get_decrypted_columns(df_online_order, "")
-# df_online_order_items = DP_Decrypter.get_decrypted_columns(df_online_order_items, "")
-# df_online_order_reviews = DP_Decrypter.get_decrypted_columns(df_online_order_reviews, "")
-# df_online_payments = DP_Decrypter.get_decrypted_columns(df_online_payments, "")
-# df_online_product_category_translation_silver = DP_Decrypter.get_decrypted_columns(df_online_product_category_translation_silver, "")
-# df_online_products = DP_Decrypter.get_decrypted_columns(df_online_products, "")
+cols_for_decryption = "consumer_city, consumer_age, consumer_phone_number"
+
+df_online_consumer = get_decrypted_columns(df_online_consumer, cols_for_decryption)
 
 df_online_products_joined_df_online_product_category_translation_silver = df_online_products \
     .join(df_online_product_category_translation_silver,
@@ -90,6 +94,7 @@ df_consumer_orders_pre_final = df_consumer_orders.select(
     col("consumer_country"),
     col("consumer_state"),
     col("consumer_city"),
+    col("consumer_phone_number"),
     col("consumer_age"),
     col("geolocation_latitude"),
     col("geolocation_longitude"),
@@ -115,7 +120,7 @@ df_consumer_orders_pre_final = df_consumer_orders.select(
 
 exclude_columns = ['consumer_unique_id', 'consumer_zip_code', 'consumer_country', 'consumer_state', 'consumer_city',
                    'consumer_age', 'geolocation_latitude', 'geolocation_longitude',
-                   'consumer_age_label', 'consumer_category']
+                   'consumer_age_label', 'consumer_category', 'consumer_phone_number']
 
 cols_for_list = ["order_id",
                  "product_id",
@@ -275,12 +280,15 @@ df_consumer_orders_final = df_consumer_orders_final.distinct()
 
 df_consumer_orders_final = df_consumer_orders_final.dropna()
 
-# df_consumer_orders_final = DP_Encrypter.get_encrypted_columns(df_consumer_orders_final, "")
+cols_for_encryption = "consumer_city, consumer_age, consumer_phone_number"
 
-df_consumer_orders_final\
-    .write\
-    .mode("overwrite")\
-    .format("parquet")\
-    .save("/Users/orestchukla/Desktop/Універ/4 курс/Дипломна/SparkProject/data/gold/online_consumer_full_gold/")
+df_consumer_orders_final = get_encrypted_columns(df_consumer_orders_final, cols_for_encryption)
 
-df_consumer_orders_final.toPandas().to_csv('/Users/orestchukla/Desktop/Універ/4 курс/Дипломна/SparkProject/data/gold/online_consumer_full_gold.csv', index = False)
+(df_consumer_orders_final
+ .write
+ .format("delta")
+ .mode("overwrite")
+ .saveAsTable(f"{GOLD_CATALOG}.{GOLD_LAYER}.online_consumer_full_gold")
+)
+
+# df_consumer_orders_final.toPandas().to_csv('/online_consumer_full_gold.csv', index = False)

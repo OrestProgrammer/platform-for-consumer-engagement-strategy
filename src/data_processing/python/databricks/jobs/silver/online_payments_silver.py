@@ -1,19 +1,22 @@
-from pyspark.sql import SparkSession
+# Databricks notebook source
+dbutils.widgets.text("BRONZE_CATALOG", "")
+dbutils.widgets.text("BRONZE_LAYER", "")
+dbutils.widgets.text("SILVER_CATALOG", "")
+dbutils.widgets.text("SILVER_LAYER", "")
+
+# COMMAND ----------
+
+BRONZE_CATALOG = dbutils.widgets.get("BRONZE_CATALOG")
+BRONZE_LAYER = dbutils.widgets.get("BRONZE_LAYER")
+SILVER_CATALOG = dbutils.widgets.get("SILVER_CATALOG")
+SILVER_LAYER = dbutils.widgets.get("SILVER_LAYER")
+
+# COMMAND ----------
+
 from pyspark.sql.functions import col, when
 
 
-spark = SparkSession\
-    .builder\
-    .appName("online_order_silver")\
-    .master("local[*]")\
-    .getOrCreate()
-
-df_source_payments = spark\
-    .read\
-    .parquet('/Users/orestchukla/Desktop/Універ/4 курс/Дипломна/SparkProject/data/bronze/source_online_payments/')
-
-# df_source_transactions = DP_Decrypter.get_decrypted_columns(df_source_transactions, "")
-
+df_source_payments = spark.table(f"{BRONZE_CATALOG}.{BRONZE_LAYER}.source_online_payments")
 
 online_payments = df_source_payments.select(
     col("order_id").cast("string").alias("order_id"),
@@ -29,11 +32,9 @@ online_payments = online_payments\
                 .when(col("payment_installments") > 1, "PP")
                 .otherwise("OP"))
 
-
-# online_orders = DP_Encrypter.get_encrypted_columns(online_orders, "")
-
-online_payments\
-    .write\
-    .mode("overwrite")\
-    .format("parquet")\
-    .save("/Users/orestchukla/Desktop/Універ/4 курс/Дипломна/SparkProject/data/silver/online_payments/")
+(online_payments
+ .write
+ .format("delta")
+ .mode("overwrite")
+ .saveAsTable(f"{SILVER_CATALOG}.{SILVER_LAYER}.online_payments")
+)
