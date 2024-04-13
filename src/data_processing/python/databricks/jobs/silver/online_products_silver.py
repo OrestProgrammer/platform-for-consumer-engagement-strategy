@@ -1,18 +1,22 @@
-from pyspark.sql import SparkSession
+# Databricks notebook source
+dbutils.widgets.text("BRONZE_CATALOG", "")
+dbutils.widgets.text("BRONZE_LAYER", "")
+dbutils.widgets.text("SILVER_CATALOG", "")
+dbutils.widgets.text("SILVER_LAYER", "")
+
+# COMMAND ----------
+
+BRONZE_CATALOG = dbutils.widgets.get("BRONZE_CATALOG")
+BRONZE_LAYER = dbutils.widgets.get("BRONZE_LAYER")
+SILVER_CATALOG = dbutils.widgets.get("SILVER_CATALOG")
+SILVER_LAYER = dbutils.widgets.get("SILVER_LAYER")
+
+# COMMAND ----------
+
 from pyspark.sql.functions import col, when
 
 
-spark = SparkSession\
-    .builder\
-    .appName("online_order_silver")\
-    .master("local[*]")\
-    .getOrCreate()
-
-df_source_products = spark\
-    .read\
-    .parquet('/Users/orestchukla/Desktop/Універ/4 курс/Дипломна/SparkProject/data/bronze/source_online_products/')
-
-# df_source_products = DP_Decrypter.get_decrypted_columns(df_source_products, "")
+df_source_products = spark.table(f"{BRONZE_CATALOG}.{BRONZE_LAYER}.source_online_products")
 
 online_products = df_source_products.select(
     col("product_id").cast("string").alias("product_id"),
@@ -34,10 +38,10 @@ online_products = online_products.withColumn('product_volume_label',
                    .when((col('product_volume_cm3') > 10000) & (col('product_volume_cm3') <= 150000), 'MV')
                    .otherwise('LV'))
 
-# online_products = DP_Encrypter.get_encrypted_columns(online_products, "")
+(online_products
+ .write
+ .format("delta")
+ .mode("overwrite")
+ .saveAsTable(f"{SILVER_CATALOG}.{SILVER_LAYER}.online_products")
+)
 
-online_products\
-    .write\
-    .mode("overwrite")\
-    .format("parquet")\
-    .save("/Users/orestchukla/Desktop/Універ/4 курс/Дипломна/SparkProject/data/silver/online_products/")

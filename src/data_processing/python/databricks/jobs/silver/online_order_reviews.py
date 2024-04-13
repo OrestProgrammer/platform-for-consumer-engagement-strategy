@@ -1,18 +1,22 @@
-from pyspark.sql import SparkSession
+# Databricks notebook source
+dbutils.widgets.text("BRONZE_CATALOG", "")
+dbutils.widgets.text("BRONZE_LAYER", "")
+dbutils.widgets.text("SILVER_CATALOG", "")
+dbutils.widgets.text("SILVER_LAYER", "")
+
+# COMMAND ----------
+
+BRONZE_CATALOG = dbutils.widgets.get("BRONZE_CATALOG")
+BRONZE_LAYER = dbutils.widgets.get("BRONZE_LAYER")
+SILVER_CATALOG = dbutils.widgets.get("SILVER_CATALOG")
+SILVER_LAYER = dbutils.widgets.get("SILVER_LAYER")
+
+# COMMAND ----------
+
 from pyspark.sql.functions import col
 
 
-spark = SparkSession\
-    .builder\
-    .appName("online_order_silver")\
-    .master("local[*]")\
-    .getOrCreate()
-
-df_source_order_reviews = spark\
-    .read\
-    .parquet('/Users/orestchukla/Desktop/Універ/4 курс/Дипломна/SparkProject/data/bronze/source_online_order_reviews/')
-
-# df_source_order_reviews = DP_Decrypter.get_decrypted_columns(df_source_order_reviews, "")
+df_source_order_reviews = spark.table(f"{BRONZE_CATALOG}.{BRONZE_LAYER}.source_online_order_reviews")
 
 df_source_order_reviews = df_source_order_reviews.filter(~col("review_id").rlike("[ :,\-]"))
 
@@ -26,10 +30,9 @@ online_order_reviews = df_source_order_reviews.select(
     col("review_answer_timestamp").cast("timestamp").alias("review_answer_timestamp"),
 ).distinct()
 
-# online_order_reviews = DP_Encrypter.get_encrypted_columns(online_order_reviews, "")
-
-online_order_reviews\
-    .write\
-    .mode("overwrite")\
-    .format("parquet")\
-    .save("/Users/orestchukla/Desktop/Універ/4 курс/Дипломна/SparkProject/data/silver/online_order_reviews/")
+(online_order_reviews
+ .write
+ .format("delta")
+ .mode("overwrite")
+ .saveAsTable(f"{SILVER_CATALOG}.{SILVER_LAYER}.online_order_reviews")
+)
