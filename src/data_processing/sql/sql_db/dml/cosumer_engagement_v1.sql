@@ -1,0 +1,99 @@
+INSERT INTO source_data_ingestion_assets_info (
+    group_name,
+    ingestion_directory,
+    storage_account,
+    container_name,
+    bronze_catalog,
+    bronze_layer,
+    bronze_table_name,
+    pii_columns,
+    file_format
+) VALUES 
+(
+    'consumer_engagement_v1',
+    'source_consumer',
+    'consumerengagementdl',
+    'source',
+    'consumer_engagement_uc',
+    'dev_bronze_db',
+    'source_online_consumer',
+    'customer_city, customer_age, customer_phone_number',
+    'CSV'
+),
+(
+    'consumer_engagement_v1',
+    'source_geolocation',
+    'consumerengagementdl',
+    'source',
+    'consumer_engagement_uc',
+    'dev_bronze_db',
+    'source_online_geolocation',
+    '',
+    'CSV'
+),
+(
+    'consumer_engagement_v1',
+    'source_order_items',
+    'consumerengagementdl',
+    'source',
+    'consumer_engagement_uc',
+    'dev_bronze_db',
+    'source_online_order_items',
+    '',
+    'CSV'
+),
+(
+    'consumer_engagement_v1',
+    'source_order_payments',
+    'consumerengagementdl',
+    'source',
+    'consumer_engagement_uc',
+    'dev_bronze_db',
+    'source_online_payments',
+    '',
+    'CSV'
+),
+(
+    'consumer_engagement_v1',
+    'source_order_reviews',
+    'consumerengagementdl',
+    'source',
+    'consumer_engagement_uc',
+    'dev_bronze_db',
+    'source_online_order_reviews',
+    '',
+    'CSV'
+),
+(
+    'consumer_engagement_v1',
+    'source_orders',
+    'consumerengagementdl',
+    'source',
+    'consumer_engagement_uc',
+    'dev_bronze_db',
+    'source_online_order',
+    '',
+    'CSV'
+),
+(
+    'consumer_engagement_v1',
+    'source_product_category_name',
+    'consumerengagementdl',
+    'source',
+    'consumer_engagement_uc',
+    'dev_bronze_db',
+    'source_online_product_category_name_translation',
+    '',
+    'CSV'
+),
+(
+    'consumer_engagement_v1',
+    'source_products',
+    'consumerengagementdl',
+    'source',
+    'consumer_engagement_uc',
+    'dev_bronze_db',
+    'source_online_products',
+    '',
+    'CSV'
+);
