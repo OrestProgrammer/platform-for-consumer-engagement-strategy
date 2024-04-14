@@ -10,6 +10,7 @@ from flask_bcrypt import Bcrypt
 from azure.storage.blob import BlobServiceClient
 from dotenv import load_dotenv
 import os
+import base64
 
 classification = Blueprint('classification', __name__)
 CORS(classification)
@@ -90,7 +91,9 @@ def classify_users():
     blob_client = blob_service_client.get_blob_client(container=container_name, blob=blob_name)
 
     blob_data = blob_client.download_blob().readall()
-    loaded_model = pickle.loads(blob_data)
+
+    model_byte_data = base64.b64decode(blob_data)
+    loaded_model = pickle.loads(model_byte_data)
 
     input_df['consumer_category'] = loaded_model.predict(scaled_input_df)
 
@@ -173,7 +176,9 @@ def global_classify_users():
         blob_client = blob_service_client.get_blob_client(container=container_name, blob=blob_name)
 
         blob_data = blob_client.download_blob().readall()
-        loaded_model = pickle.loads(blob_data)
+
+        model_byte_data = base64.b64decode(blob_data)
+        loaded_model = pickle.loads(model_byte_data)
 
         input_df['consumer_category'] = loaded_model.predict(scaled_input_df)
 

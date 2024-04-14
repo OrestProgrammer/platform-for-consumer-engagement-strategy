@@ -30,6 +30,7 @@ import matplotlib.pyplot as plt
 import pickle
 import os
 from pyspark.sql.functions import array_join, col, concat_ws, lit
+import base64
 
 # COMMAND ----------
 
@@ -84,16 +85,10 @@ dt = DecisionTreeClassifier(criterion='gini', max_depth=10, min_samples_split=3,
 ensemble = VotingClassifier(estimators=[('knn', knn), ('svm', svm), ('rf', rf), ('dt', dt)], voting='soft')
 ensemble.fit(X_train_scaled, y_train)
 
-local_tmp_path = "/dbfs/tmp/model.pkl"
 adls_model_path = f"{PATH_TO_SAVE_MODEL}/model.pkl"
 
-if os.path.exists(local_tmp_path):
-    os.remove(local_tmp_path)
+modelpkl = pickle.dumps(ensemble)
 
-with open(local_tmp_path, 'wb') as file:
-    pickle.dump(ensemble, file)
+model_base64_encoded = base64.b64encode(modelpkl).decode('utf-8')
 
-dbutils.fs.cp("file:" + local_tmp_path, adls_model_path)
-
-if os.path.exists(local_tmp_path):
-    os.remove(local_tmp_path)
+dbutils.fs.put(adls_model_path, model_base64_encoded, overwrite=True)
