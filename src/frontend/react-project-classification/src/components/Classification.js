@@ -89,19 +89,30 @@ const Classification = () => {
     }
 
     const calculateMetrics = (data) => {
-        setTotalRecords(data.length - 1);
-        setBestCount(data.filter(record => record.consumer_category === "Best").length);
-        setNormalCount(data.filter(record => record.consumer_category === "Normal").length);
-        setBadCount(data.filter(record => record.consumer_category === "Occasional").length);
-    }
+        let bestCount = 0;
+        let normalCount = 0;
+        let occasionalCount = 0;
 
-    const descriptions = [
-        "This is a description for Column 1.",
-        "Another description, this time for Column 2.",
-        "Column 3's description is this one.",
-        "Here is the description for Column 4.",
-        "And lastly, the description for Column 5."
-    ];
+        const categoryColumns = Object.keys(data[0]).filter(key => key.startsWith('category_'));
+
+        data.forEach(record => {
+            categoryColumns.forEach(column => {
+                if(record[column] === "Best") {
+                    bestCount++;
+                } else if(record[column] === "Normal") {
+                    normalCount++;
+                } else if(record[column] === "Occasional") {
+                    occasionalCount++;
+                }
+            });
+        });
+
+        setBestCount(bestCount);
+        setNormalCount(normalCount);
+        setBadCount(occasionalCount);
+        setTotalRecords(bestCount + normalCount + occasionalCount);
+
+    }
 
     const columnDescriptions = {
         'consumer_zip_code': { type: 'string', description: 'The postal zip code of the consumer.', example: '07087' },
