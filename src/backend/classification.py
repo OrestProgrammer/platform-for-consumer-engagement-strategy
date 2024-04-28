@@ -5,6 +5,7 @@ from sklearn.preprocessing import OrdinalEncoder, StandardScaler
 from database.db_model import User, Session, Token, ProcessingHistory
 import pickle
 import datetime
+from ast import literal_eval
 from flask_httpauth import HTTPBasicAuth
 from flask_bcrypt import Bcrypt
 from azure.storage.blob import BlobServiceClient
@@ -99,6 +100,18 @@ def classify_users():
 
     input_df['consumer_category'] = input_df['consumer_category'].replace({0: "Occasional", 1: 'Normal', 2: 'Best'})
 
+    input_df['product_category_name_english_list'] = input_df['product_category_name_english_set'].apply(literal_eval)
+
+    category_list = pd.unique(
+        [item for sublist in input_df['product_category_name_english_list'].tolist() for item in sublist])
+
+    for category in category_list:
+        column_name = 'category_' + category
+        input_df[column_name] = input_df.apply(lambda row: row['consumer_category'] if category in eval(
+            row['product_category_name_english_set']) else "Nonapplicable", axis=1)
+
+    input_df = input_df.drop(columns=['consumer_category', 'product_category_name_english_list'])
+
     processed_csv = input_df.to_csv(index=False)
 
     db_token.amount_of_processing_records_left -= len(input_df)
@@ -183,6 +196,19 @@ def global_classify_users():
         input_df['consumer_category'] = loaded_model.predict(scaled_input_df)
 
         input_df['consumer_category'] = input_df['consumer_category'].replace({0: "Occasional", 1: 'Normal', 2: 'Best'})
+
+        input_df['product_category_name_english_list'] = input_df['product_category_name_english_set'].apply(
+            literal_eval)
+
+        category_list = pd.unique(
+            [item for sublist in input_df['product_category_name_english_list'].tolist() for item in sublist])
+
+        for category in category_list:
+            column_name = 'category_' + category
+            input_df[column_name] = input_df.apply(lambda row: row['consumer_category'] if category in eval(
+                row['product_category_name_english_set']) else "Nonapplicable", axis=1)
+
+        input_df = input_df.drop(columns=['consumer_category', 'product_category_name_english_list'])
     except Exception as e:
         return jsonify({'error': 'Error while processing records: ' + str(e), 'status': 500}), 500
 
@@ -215,7 +241,10 @@ def get_processing_history():
     HistoryList = {}
     key = 0
     for i in db_history:
-        HistoryList[key] = {'id': i.id, 'username': db_user.username, 'email': db_user.email, 'personal_token': db_token.personal_token, 'amount_of_processed_records': i.amount_of_processed_records, 'processing_timestamp': i.processing_timestamp, 'status': i.description}
+        HistoryList[key] = {'id': i.id, 'username': db_user.username, 'email': db_user.email,
+                            'personal_token': db_token.personal_token,
+                            'amount_of_processed_records': i.amount_of_processed_records,
+                            'processing_timestamp': i.processing_timestamp, 'status': i.description}
         key += 1
 
     return jsonify({"history": HistoryList})

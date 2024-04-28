@@ -131,7 +131,7 @@ const Payment = () => {
                     ) : (
                         <div class="payment">
                             <div class="form-group">
-                                <label>Use Voucher</label>
+                                <label>Use quantity</label>
                                 <input type="number"
                                     min="1"
                                     placeholder="Enter quantity"
