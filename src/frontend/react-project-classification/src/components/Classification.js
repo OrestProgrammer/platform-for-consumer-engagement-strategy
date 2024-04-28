@@ -227,10 +227,10 @@ const Classification = () => {
                         <div class="">
                             {data && (
                                 <div class="card shadow text-center p-4">
-                                    <p>Amount of total classified records: {totalRecords}</p>
-                                    <p>Amount of records classified as "Best": {bestCount}</p>
-                                    <p>Amount of records classified as "Normal": {normalCount}</p>
-                                    <p>Amount of records classified as "Occasional": {badCount}</p>
+                                    <p>Number of total classified records: {totalRecords}</p>
+                                    <p>Number of records classified as "Best": {bestCount}</p>
+                                    <p>Number of records classified as "Normal": {normalCount}</p>
+                                    <p>Number of records classified as "Occasional": {badCount}</p>
                                 </div>
                             )}
                         </div>

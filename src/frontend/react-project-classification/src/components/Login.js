@@ -62,7 +62,7 @@ const Login = () => {
                 <div class="col"></div>
                 <div class="col-md-5 ">
 
-                    <div class="card shadow mb-5 p-5">
+                    <div class="left card shadow mb-5 p-5">
                         <h2 class="text-center text-uppercase">LOGIN</h2>
                         <hr />
 

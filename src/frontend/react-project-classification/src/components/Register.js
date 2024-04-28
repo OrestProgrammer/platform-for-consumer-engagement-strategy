@@ -61,7 +61,7 @@ const Register = () => {
                 <div class="col"></div>
                 <div class="col-md-5 ">
 
-                    <div class="card shadow mb-5 p-5">
+                    <div class="left card shadow mb-5 p-5">
                         <h2 class="text-center text-uppercase">Sign Up</h2>
                         <hr />
                         <form data-testid="registerform" onSubmit={handleSubmit}>
