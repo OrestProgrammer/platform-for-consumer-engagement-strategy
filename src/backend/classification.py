@@ -73,9 +73,7 @@ def classify_users():
 
     input_df2 = input_df.copy()
 
-    columns_for_ordinal_encoder = ["consumer_country", "consumer_state", "consumer_city", "consumer_age_label",
-                                   "payment_type_set", "product_category_name_english_set", "order_quality_label_set",
-                                   "item_price_category_label_set", "payment_label_set"]
+    columns_for_ordinal_encoder = ["item_price_category_label_set", "product_category_name_english_set", "payment_label_set", "consumer_state","consumer_age"]
 
     ordinal_encoder = OrdinalEncoder(handle_unknown='use_encoded_value', unknown_value=-1)
 
@@ -169,10 +167,8 @@ def global_classify_users():
 
         input_df2 = input_df.copy()
 
-        columns_for_ordinal_encoder = ["consumer_country", "consumer_state", "consumer_city", "consumer_age_label",
-                                       "payment_type_set", "product_category_name_english_set",
-                                       "order_quality_label_set",
-                                       "item_price_category_label_set", "payment_label_set"]
+        columns_for_ordinal_encoder = ["item_price_category_label_set", "product_category_name_english_set",
+                                       "payment_label_set", "consumer_state", "consumer_age"]
 
         ordinal_encoder = OrdinalEncoder(handle_unknown='use_encoded_value', unknown_value=-1)
 
