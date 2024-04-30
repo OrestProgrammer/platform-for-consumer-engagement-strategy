@@ -1,4 +1,6 @@
+# Databricks notebook source
 from sklearn.preprocessing import OrdinalEncoder
+from pyspark.sql.types import DecimalType
 
 
 def data_preprocessing(input_df):
@@ -32,3 +34,10 @@ def data_preprocessing(input_df):
     input_df[columns_for_ordinal_encoder] = decoded_df
 
     return input_df
+
+
+def cast_double_to_int(df):
+    for column in df.schema:
+        if isinstance(column.dataType, DecimalType):
+            df = df.withColumn(column.name, df[column.name].cast('int'))
+    return df
