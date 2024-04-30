@@ -1,8 +1,10 @@
+# Databricks notebook source
 import numpy as np
 import sklearn.metrics as metrics
 from sklearn.model_selection import learning_curve
 import matplotlib.pyplot as plt
 import seaborn as sns
+from sklearn.ensemble import ExtraTreesClassifier
 
 
 def show_accuracy(y, y_pred):
@@ -29,15 +31,15 @@ def show_confusion_matrix(y, y_pred, model):
 
 
 def plot_learning_curve(model, X, y):
-    sizes, training_scores, validation_scores = learning_curve(model, X, y, cv=5,
+    sizes, training_scores, testing_scores = learning_curve(model, X, y, cv=5,
                                                                train_sizes=np.linspace(0.1, 1, 10), scoring='accuracy')
 
     mean_training = np.mean(training_scores, axis=1)
-    mean_validation = np.mean(validation_scores, axis=1)
+    mean_testing = np.mean(testing_scores, axis=1)
 
     plt.figure(figsize=(10, 6))
     plt.plot(sizes, mean_training, '-o', color="r", label="Training score")
-    plt.plot(sizes, mean_validation, '-o', color="g", label="Validation score")
+    plt.plot(sizes, mean_testing, '-o', color="g", label="Testing score")
 
     plt.title('Learning Curve')
     plt.xlabel('Size of training samples')
@@ -49,10 +51,34 @@ def plot_learning_curve(model, X, y):
 
 
 def plot_corr_matrix(df):
-    corr_matrix = df.corr()
+    corr_matrix = df.corr().abs()
 
-    plt.figure(figsize=(100, 100))
-    sns.heatmap(corr_matrix, annot=True, cmap="coolwarm", linewidths=1)
-    plt.title("Autocorrelation Matrix")
+    plt.figure(figsize=(50, 50))
+    sns.heatmap(corr_matrix, annot=True, cmap="Reds", linewidths=1)
+
+    plt.title("Correlation Matrix")
 
     return plt
+
+
+def check_importances(df, target):
+    X = df.drop(target, axis=1)
+    y = df[target]
+    model = ExtraTreesClassifier()
+    model.fit(X, y)
+    feature_importances = model.feature_importances_
+    ind = np.argsort(feature_importances)[::-1]
+
+    for i in range(X.shape[1]):
+        print("Feature: " + X.columns[ind[i]] + ". Importance: " + str(feature_importances[ind[i]]))
+
+    features = [X.columns[i] for i in ind]
+    importances = feature_importances[ind]
+
+    plt.figure(figsize=(10, 6))
+    plt.barh(range(len(features)), importances, align='center')
+    plt.yticks(range(len(features)), features)
+    plt.xlabel('Importance')
+    plt.ylabel('Feature')
+    plt.title('Feature Importance')
+    plt.show()
