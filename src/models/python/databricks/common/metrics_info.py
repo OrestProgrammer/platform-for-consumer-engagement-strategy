@@ -76,7 +76,7 @@ def check_importances(df, target):
     importances = feature_importances[ind]
 
     plt.figure(figsize=(10, 6))
-    plt.barh(range(len(features)), importances, align='center')
+    plt.barh(range(len(features)), importances, align='center', color='green')
     plt.yticks(range(len(features)), features)
     plt.xlabel('Importance')
     plt.ylabel('Feature')
