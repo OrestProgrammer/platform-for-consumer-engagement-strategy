@@ -48,13 +48,12 @@ cols_for_decryption = "consumer_city, consumer_age, consumer_phone_number"
 
 df = get_decrypted_columns(df, cols_for_decryption)
 
+df = cast_double_to_int(df)
+
 array_columns = [
-    'payment_type_set',
     'product_category_name_english_set',
-    'order_quality_label_set',
     'item_price_category_label_set',
-    'payment_label_set',
-    'product_volume_label_set'
+    'payment_label_set'
 ]
 
 for array_col in array_columns:
@@ -69,18 +68,15 @@ X = processed_df.drop("consumer_category", axis=1)
 y = processed_df["consumer_category"]
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=30)
-X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.2, random_state=30)
 
 scaler = StandardScaler()
 X_train_scaled = scaler.fit_transform(X_train)
-X_test_scaled = scaler.transform(X_test)
-X_val_scaled = scaler.transform(X_val)
 
-knn = KNeighborsClassifier(n_neighbors=3, weights='distance', algorithm='auto', leaf_size=20, metric='euclidean', p=1)
+knn = KNeighborsClassifier(n_neighbors=5, weights='uniform', algorithm='auto', leaf_size=20, metric='euclidean', p=1)
 svm = SVC(C=5.0, kernel='poly', gamma='auto', degree=4, coef0=0.0, decision_function_shape='ovr', shrinking=True,
           probability=True, max_iter=-1)
 rf = RandomForestClassifier(n_estimators=50, criterion='entropy', max_depth=5, min_samples_split=3, min_samples_leaf=2, max_features='sqrt', max_leaf_nodes=3, class_weight='balanced', random_state=1)
-dt = DecisionTreeClassifier(criterion='gini', max_depth=10, min_samples_split=3, min_samples_leaf=2, max_features='sqrt', splitter='random', random_state=1)
+dt = DecisionTreeClassifier(criterion='gini', max_depth=10, min_samples_split=3, min_samples_leaf=2, max_features='sqrt', splitter='best', random_state=1)
 
 ensemble = VotingClassifier(estimators=[('knn', knn), ('svm', svm), ('rf', rf), ('dt', dt)], voting='soft')
 ensemble.fit(X_train_scaled, y_train)
